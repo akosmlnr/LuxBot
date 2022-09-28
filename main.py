@@ -3,7 +3,7 @@
 #   +giverole @user role name
 #   +removerole @user role name
 #   +kick @user reason
-#   +dm @user message
+#   +directmessage @user message
 #   +clear amount
 #   +delete
 # All of the commands above are in the same order as they are in the code
