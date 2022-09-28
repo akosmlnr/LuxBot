@@ -15,7 +15,7 @@ from decouple import config
 bot = commands.Bot(intents=discord.Intents().all(), command_prefix='+', help_command=None)
 
 embed = (discord.Embed(title='Commands', description='+say <#channel> <message>\n+giverole <@user> <role name>\n+removerole <@user> <role name>\n+kick <@user>\n+dm <@user> <message>\n+clear/purge/cls <number>\n+delete/del', color=0xffffff))
-embed.set_author(name='LuxBot', icon_url='https://github.com/akosmlnr/LuxBot/blob/033b5a3a91896092bacbd6d26ae9a48d930aebaf/Assets/LuxLogoBW.png')
+embed.set_author(name='LuxBot', icon_url='https://raw.githubusercontent.com/akosmlnr/LuxBot/master/Assets/LuxLogoBW.png')
 
 @bot.command(pass_context=True, name='help')
 async def help(ctx):
