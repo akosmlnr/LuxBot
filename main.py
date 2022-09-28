@@ -8,14 +8,14 @@
 #   +delete
 # All of the commands above are in the same order as they are in the code
 
-import os
 import discord
 from discord.ext import commands
+from decouple import config
 
 bot = commands.Bot(intents=discord.Intents().all(), command_prefix='+', help_command=None)
 
 embed = (discord.Embed(title='Commands', description='+say <#channel> <message>\n+giverole <@user> <role name>\n+removerole <@user> <role name>\n+kick <@user>\n+dm <@user> <message>\n+clear/purge/cls <number>\n+delete/del', color=0xffffff))
-embed.set_author(name='LuxBot', icon_url='https://cdn.discordapp.com/attachments/950399610071969795/1024689601278906409/LuxLogoBW.png')
+embed.set_author(name='LuxBot', icon_url='https://github.com/akosmlnr/LuxBot/blob/033b5a3a91896092bacbd6d26ae9a48d930aebaf/Assets/LuxLogoBW.png')
 
 @bot.command(pass_context=True, name='help')
 async def help(ctx):
@@ -65,4 +65,4 @@ async def on_ready():
     print('{0.user}'.format(bot))
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="+help"))
 
-bot.run(os.getenv('TOKEN'))
+bot.run(config('TOKEN'))
