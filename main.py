@@ -8,6 +8,7 @@
 #   +delete
 # All of the commands above are in the same order as they are in the code
 
+import os
 import discord
 from discord.ext import commands
 
@@ -62,6 +63,6 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     print('{0.user}'.format(bot))
-    await bot.change_presence(activity=discord.Game(name='Prefix: +'))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="+help"))
 
-bot.run('MTAyNDY2NzcxODQ3MDg2MDkwMQ.Gbtfgc.KTbGRt6uZeqlBeRyGrDTmv5NXsgEgy7Co-cwgc')
+bot.run(os.getenv('TOKEN'))
