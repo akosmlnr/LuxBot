@@ -60,12 +60,6 @@ async def delete(ctx):
     await ctx.channel.purge(limit = 2)
 
 @bot.event
-async def on_message(str):
-    if not str.guild and str.author !=  bot.user:
-        channel = bot.get_channel(1024398086572888205)
-        await channel.send(f'{str.author} sent: {str.content}')
-
-@bot.event
 async def on_command_error(ctx, error):
     await ctx.send(error)
 
