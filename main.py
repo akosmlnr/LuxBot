@@ -3,6 +3,9 @@
 #   +giverole @user role name
 #   +removerole @user role name
 #   +kick @user reason
+#   +mute @user
+#   +unmute @user
+#   +warn @user reason
 #   +directmessage @user message
 #   +clear amount
 #   +delete
@@ -16,8 +19,8 @@ bot  =  commands.Bot(intents = discord.Intents().all(), command_prefix = '+', he
 
 embed = discord.Embed(color = 0xffffff)
 embed.set_author(name = 'LuxBot', icon_url = 'https://cdn.discordapp.com/attachments/1024218756098035722/1024711066221019276/LuxLogoBW.png')
-embed.add_field(name = 'Command usage', value = '+say #channel message\n+giverole @user role name\n+removerole @user role name\n+kick @user\n+directmessage @user message\n+clear amount\n+delete')
-embed.add_field(name = 'Command explanation', value = 'say: Sends a message in a channel\ngiverole: Gives a role to a user\nremoverole: Removes a role from a user\nkick: Kicks a user from the server\ndirectmessage: Sends a private message to a user\nclear: Deletes an amount of messages. If no amount specified, every message in that channel will get deleted\ndelete: Deletes the previous message')
+embed.add_field(name = 'Command usage', value = '+say #channel message\n+giverole @user role name\n+removerole @user role name\n+kick @user\n+mute @user\n+unmute @user\n+warn @user reason\n+directmessage @user message\n+clear amount\n+delete')
+embed.add_field(name = 'Command explanation', value = 'say: Sends a message in a channel, if no channel specified the message will be sent into the users channel\ngiverole: Gives a role to a user\nremoverole: Removes a role from a user\nkick: Kicks a user from the server\nmute: Prohibits a user from typing\nunmute: Allows users to type again\nwarn: Warns a user for the given reason\ndirectmessage: Sends a private message to a user\nclear: Deletes an amount of messages. If no amount specified, every message in that channel will get deleted\ndelete: Deletes the previous message')
 embed.add_field(name = 'Command aliases', value = 'say: tell\ndirectmessage: dm\nclear: purge, cls\ndelete: del')
 
 @bot.command(pass_context = True, name = 'help')
@@ -25,8 +28,18 @@ async def help(ctx):
     await ctx.send(embed = embed)
 
 @bot.command(pass_context = True, name = 'say', aliases = ['tell'])
-async def say(ctx, channel: discord.TextChannel, *, message: str):
-    await channel.send(message)
+async def saycmd(ctx, channelGiven: str, *, message: str = None):
+    channelNew = channelGiven.removeprefix('<#').removesuffix('>')
+    for channel in ctx.guild.channels:
+        if isinstance(channel, discord.TextChannel):
+            if channelNew == str(channel.id):
+                await channel.send(message)
+                return
+            elif str(ctx.channel.id) == str(channel.id):
+                if not message:
+                    await ctx.send(channelGiven)
+                else:
+                    await ctx.send(channelGiven + ' ' + message)
 
 @bot.command(pass_context = True, name = 'giverole')
 async def giverole(ctx, user: discord.Member, role: discord.Role):
@@ -42,6 +55,33 @@ async def removerole(ctx, user: discord.Member, role: discord.Role):
 async def kick(ctx, user: discord.Member):
     await user.kick()
     await ctx.send(f'Succesfully kicked **{user}**.')
+
+@bot.command(pass_context = True, name = 'mute')
+async def mute(ctx, user: discord.Member):
+    role = discord.utils.get(ctx.guild.roles, name='Muted')
+    if not role:
+        await ctx.send('Creating **Muted** role')
+        await ctx.guild.create_role(name='Muted', permissions = discord.Permissions(1115137))
+        role = discord.utils.get(ctx.guild.roles, name='Muted')
+        for channel in ctx.guild.channels:
+            if isinstance(channel, discord.TextChannel):
+                await channel.set_permissions(role, send_messages = False)
+        await user.add_roles(role)
+        await ctx.send(f'Succesfully muted **{user}**.')
+    else:
+        await user.add_roles(role)
+        await ctx.send(f'Succesfully muted **{user}**.')
+
+@bot.command(pass_context = True, name = 'unmute')
+async def unmute(ctx, user: discord.Member):
+    role = discord.utils.get(ctx.guild.roles, name='Muted')
+    await user.remove_roles(role)
+    await ctx.send(f'Succesfully unmuted **{user}**.')
+
+@bot.command(pass_context = True, name = 'warn')
+async def warn(ctx, user: discord.Member, *, reason: str):
+    await ctx.send(f'**{user}** has been warned for **{reason}**')
+    await user.send(f'You have been warned on **{ctx.guild.name}** for **{reason}**')
 
 @bot.command(pass_context = True, name = 'directmessage', aliases = ['dm'])
 async def directmessage(ctx, user: discord.Member, *, message: str):
