@@ -80,7 +80,7 @@ async def unmute(ctx, user: discord.Member):
 
 @bot.command(pass_context = True, name = 'warn')
 async def warn(ctx, user: discord.Member, *, reason: str):
-    await ctx.send(f'**{user}** has been warned for **{reason}**')
+    await ctx.send(f'**{user.name}** has been warned for **{reason}**')
     await user.send(f'You have been warned on **{ctx.guild.name}** for **{reason}**')
 
 @bot.command(pass_context = True, name = 'directmessage', aliases = ['dm'])
