@@ -6,6 +6,9 @@
 #   +mute @user
 #   +unmute @user
 #   +warn @user reason
+#   +ban @user reason
+#   +unban @user reason
+#   +bannedlist
 #   +directmessage @user message
 #   +clear amount
 #   +delete
@@ -19,9 +22,12 @@ bot  =  commands.Bot(intents = discord.Intents().all(), command_prefix = '+', he
 
 embed = discord.Embed(color = 0xffffff)
 embed.set_author(name = 'LuxBot', icon_url = 'https://cdn.discordapp.com/attachments/1024218756098035722/1024711066221019276/LuxLogoBW.png')
-embed.add_field(name = 'Command usage', value = '+say #channel message\n+giverole @user role name\n+removerole @user role name\n+kick @user\n+mute @user\n+unmute @user\n+warn @user reason\n+directmessage @user message\n+clear amount\n+delete')
-embed.add_field(name = 'Command explanation', value = 'say: Sends a message in a channel, if no channel specified the message will be sent into the users channel\ngiverole: Gives a role to a user\nremoverole: Removes a role from a user\nkick: Kicks a user from the server\nmute: Prohibits a user from typing\nunmute: Allows users to type again\nwarn: Warns a user for the given reason\ndirectmessage: Sends a private message to a user\nclear: Deletes an amount of messages. If no amount specified, every message in that channel will get deleted\ndelete: Deletes the previous message')
-embed.add_field(name = 'Command aliases', value = 'say: tell\ndirectmessage: dm\nclear: purge, cls\ndelete: del')
+embed.add_field(name = 'Command usage', value = '+say #channel message\n+giverole @user role name\n+removerole @user role name\n+kick @user\n+mute @user\n+unmute @user\n+warn @user reason\n+ban @user reason\n+unban @user reason\n+bannedlist\n+directmessage @user message\n+clear amount\n+delete')
+embed.add_field(name = 'Command explanation', value = '**say:** Sends a message in a channel, if no channel specified the message will be sent into the users channel\n**giverole:** Gives a role to a user\n**removerole:** Removes a role from a user\n**kick:** Kicks a user from the server\n**mute:** Prohibits a user from typing\n**unmute:** Allows users to type again\n**warn:** Warns a user for the given reason\n**ban:** Bans a user for the given reason\n**unban:** Unbans the specified user\n**bannedlist:** Lists all of the banned users on the server\n**directmessage:** Sends a private message to a user\n**clear:** Deletes an amount of messages. If no amount specified, every message in that channel will get deleted\n**delete:** Deletes the previous message')
+embed.add_field(name = 'Command aliases', value = '**say:** tell\n**directmessage:** dm\n**clear:** purge, cls\n**delete:** del')
+
+bannedListEmbed = discord.Embed(color = 0xffffff)
+bannedListEmbed.set_author(name = 'LuxBot', icon_url = 'https://cdn.discordapp.com/attachments/1024218756098035722/1024711066221019276/LuxLogoBW.png')
 
 @bot.command(pass_context = True, name = 'help')
 async def help(ctx):
@@ -44,17 +50,17 @@ async def saycmd(ctx, channelGiven: str, *, message: str = None):
 @bot.command(pass_context = True, name = 'giverole')
 async def giverole(ctx, user: discord.Member, role: discord.Role):
     await user.add_roles(role)
-    await ctx.send(f'Succesfully gave **{user}** the **{role.name}** role.')
+    await ctx.send(f'Succesfully gave **{user}** the **{role.name}** role')
 
 @bot.command(pass_context = True, name = 'removerole')
 async def removerole(ctx, user: discord.Member, role: discord.Role):
     await user.remove_roles(role)
-    await ctx.send(f'Succesfully removed the **{role.name}** role from **{user}**.')
+    await ctx.send(f'Succesfully removed the **{role.name}** role from **{user}**')
 
 @bot.command(pass_context = True, name = 'kick')
 async def kick(ctx, user: discord.Member):
     await user.kick()
-    await ctx.send(f'Succesfully kicked **{user}**.')
+    await ctx.send(f'Succesfully kicked **{user}**')
 
 @bot.command(pass_context = True, name = 'mute')
 async def mute(ctx, user: discord.Member):
@@ -67,26 +73,54 @@ async def mute(ctx, user: discord.Member):
             if isinstance(channel, discord.TextChannel):
                 await channel.set_permissions(role, send_messages = False)
         await user.add_roles(role)
-        await ctx.send(f'Succesfully muted **{user}**.')
+        await ctx.send(f'Succesfully muted **{user}**')
     else:
         await user.add_roles(role)
-        await ctx.send(f'Succesfully muted **{user}**.')
+        await ctx.send(f'Succesfully muted **{user}**')
 
 @bot.command(pass_context = True, name = 'unmute')
 async def unmute(ctx, user: discord.Member):
     role = discord.utils.get(ctx.guild.roles, name='Muted')
     await user.remove_roles(role)
-    await ctx.send(f'Succesfully unmuted **{user}**.')
+    await ctx.send(f'Succesfully unmuted **{user}**')
 
 @bot.command(pass_context = True, name = 'warn')
 async def warn(ctx, user: discord.Member, *, reason: str):
     await ctx.send(f'**{user.name}** has been warned for **{reason}**')
     await user.send(f'You have been warned on **{ctx.guild.name}** for **{reason}**')
 
+@bot.command(pass_context = True, name = 'ban')
+async def ban(ctx, user: discord.Member, *, reason: str):
+    await ctx.guild.ban(user, reason=reason)
+    await ctx.send(f'**{user.name}** has been banned for **{reason}**')
+
+@bot.command(pass_context = True, name = 'unban')
+async def unban(ctx, *, user):
+    bans = await ctx.guild.bans()
+    for ban in bans:
+        if ban[1].name + '#' + ban[1].discriminator == user:
+            fetchedUser = await bot.fetch_user(ban[1].id)
+            await ctx.guild.unban(fetchedUser)
+            await ctx.send(f'**{ban[1].name}#{ban[1].discriminator}** has been unbanned')
+
+@bot.command(pass_context = True, name = 'bannedlist')
+async def bannedlist(ctx):
+    bans = await ctx.guild.bans()
+    bannedUsers = []
+    if bans != []:
+        for ban in bans:
+            bannedUsers.append('**' + ban[1].name + '#' + ban[1].discriminator + '**, reason: ' + ban[0] + '\n')
+
+        bannedListEmbed.remove_field(index=0)
+        bannedListEmbed.add_field(name = 'List of banned users', value = ' '.join(bannedUsers))
+        await ctx.send(embed=bannedListEmbed)
+    else:
+        await ctx.send('This list is empty')
+
 @bot.command(pass_context = True, name = 'directmessage', aliases = ['dm'])
 async def directmessage(ctx, user: discord.Member, *, message: str):
     await user.send(message)
-    await ctx.send(f'Succesfully sent message: **{message}** to **{user}**.')
+    await ctx.send(f'Succesfully sent message: **{message}** to **{user}**')
 
 @bot.command(pass_context = True, name = 'clear', aliases = ['purge', 'cls'])
 async def clear(ctx, amount: int = None):
